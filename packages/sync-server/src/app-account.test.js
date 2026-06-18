@@ -219,9 +219,33 @@ describe('getLoginMethod()', () => {
   });
 });
 
+const clearPasswordUser = () => {
+  getAccountDb().mutate("DELETE FROM sessions WHERE auth_method = 'password'");
+  getAccountDb().mutate("DELETE FROM users WHERE user_name = ''");
+};
+
 describe('/login', () => {
   afterEach(() => {
     clearAuth();
+    clearPasswordUser();
+  });
+
+  it('should succeed when OpenID users exist but no password user has been created yet', async () => {
+    // Regression test: loginWithPassword used to throw a TypeError (→ HTTP 500)
+    // when OpenID users were present in the users table but the password user
+    // (user_name = '') had never been created, because it unsafely destructured
+    // the null/undefined result of accountDb.first().
+    //
+    // The global test setup always inserts genericAdmin, so totalOfUsers > 0 here.
+    bootstrapPassword('testpassword');
+
+    const res = await request(app)
+      .post('/login')
+      .send({ loginMethod: 'password', password: 'testpassword' });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('status', 'ok');
+    expect(res.body.data).toHaveProperty('token');
   });
 
   it('should allow password login when OIDC is the active method', async () => {
