@@ -60,27 +60,21 @@ export function loginWithPassword(password) {
 
   const token = sessionRow ? sessionRow.token : uuidv4();
 
-  const { totalOfUsers } = accountDb.first(
-    'SELECT count(*) as totalOfUsers FROM users',
+  const passwordUserRow = accountDb.first(
+    'SELECT id FROM users WHERE user_name = ?',
+    [''],
   );
   let userId = null;
-  if (totalOfUsers === 0) {
+  if (!passwordUserRow) {
+    // Password user doesn't exist yet (e.g. the server was bootstrapped with
+    // OpenID and password auth was enabled afterward). Create it on first use.
     userId = uuidv4();
     accountDb.mutate(
       'INSERT INTO users (id, user_name, display_name, enabled, owner, role) VALUES (?, ?, ?, 1, 1, ?)',
       [userId, '', '', 'ADMIN'],
     );
   } else {
-    const { id: userIdFromDb } = accountDb.first(
-      'SELECT id FROM users WHERE user_name = ?',
-      [''],
-    );
-
-    userId = userIdFromDb;
-
-    if (!userId) {
-      return { error: 'user-not-found' };
-    }
+    userId = passwordUserRow.id;
   }
 
   let expiration = TOKEN_EXPIRATION_NEVER;
