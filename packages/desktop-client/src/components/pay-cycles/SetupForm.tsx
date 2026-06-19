@@ -36,7 +36,9 @@ export function SetupForm({ onSave }: SetupFormProps) {
         </Trans>
       </Text>
       <View style={{ gap: 8 }}>
-        <Text style={{ fontWeight: 500 }}>{<Trans>First pay date</Trans>}</Text>
+        <Text style={{ fontWeight: 500 }}>
+          <Trans>First pay date</Trans>
+        </Text>
         <Input
           type="date"
           value={startDate}
