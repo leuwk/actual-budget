@@ -1,0 +1,15 @@
+BEGIN TRANSACTION;
+
+CREATE TABLE pay_cycles (
+  id TEXT PRIMARY KEY,
+  start_date TEXT NOT NULL,
+  frequency_days INTEGER NOT NULL DEFAULT 14
+);
+
+CREATE TABLE pay_cycle_budgets (
+  id TEXT PRIMARY KEY,
+  category_id TEXT NOT NULL UNIQUE,
+  amount INTEGER NOT NULL DEFAULT 0
+);
+
+COMMIT;
